@@ -5,4 +5,4 @@
 ### version
 
 unity = 2022.3.44f1
-python = 3.8
+python = 3.10
