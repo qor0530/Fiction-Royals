@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement; // 씬 전환을 위한 네임스페이스
 using UnityEngine.UI; // UI 버튼을 사용하기 위한 네임스페이스
