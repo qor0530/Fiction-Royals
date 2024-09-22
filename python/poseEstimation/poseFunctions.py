@@ -14,18 +14,29 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 
 # model load
-model_path = "python/poseEstimation/pose_landmarker_heavy.task"
+model_path = "./pose_landmarker_heavy.task"
 
-options = PoseLandmarkerOptions(
-    base_options=BaseOptions(
-        model_asset_path=model_path,
-        delegate=BaseOptions.Delegate.GPU,
-    ),
-    num_poses=4,
-    running_mode=VisionRunningMode.IMAGE,
-)
+try:
+    options = PoseLandmarkerOptions(
+        base_options=BaseOptions(
+            model_asset_path=model_path,
+            delegate=BaseOptions.Delegate.GPU,
+        ),
+        num_poses=4,
+        running_mode=VisionRunningMode.IMAGE,
+    )
+    landmarker = PoseLandmarker.create_from_options(options)
+except NotImplementedError:
+    options = PoseLandmarkerOptions(
+        base_options=BaseOptions(
+            model_asset_path=model_path,
+            delegate=BaseOptions.Delegate.CPU,  # GPU에서 CPU로 변경
+        ),
+        num_poses=4,
+        running_mode=VisionRunningMode.IMAGE,
+    )
+    landmarker = PoseLandmarker.create_from_options(options)
 
-landmarker = PoseLandmarker.create_from_options(options)
 
 # connections
 POSE_CONNECTIONS = [
