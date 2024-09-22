@@ -19,15 +19,8 @@ while True:
     # -------------- 카메라 처리 --------------#
     ret, frame = cap.read()
     if not ret:
-        print("프레임을 읽는데 실패했습니다.")
         break
 
-    pose_landmarker_result = landmarker.detect(
-        mp.Image(
-            image_format=mp.ImageFormat.SRGBA,
-            data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA),
-        )
-    )
     # -------------- 포즈 처리 --------------#
     pose_landmarker_result = landmarker.detect(
         mp.Image(
@@ -35,12 +28,7 @@ while True:
             data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA),
         )
     )
-    # 포즈 감지 결과 확인
-    if pose_landmarker_result is None or not pose_landmarker_result.pose_landmarks:
-        print("포즈 감지 결과가 없습니다.")
-        continue
-    else:
-        print(f"감지된 포즈 수: {len(pose_landmarker_result.pose_landmarks)}")
+
     # -------------- 유사도 계산 및 유니티 전송 --------------#
     if isKeyPointTime():
         scores = calculatePoseSimilarities(key_points, pose_landmarker_result)
