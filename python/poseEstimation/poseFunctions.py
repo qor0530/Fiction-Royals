@@ -1,5 +1,6 @@
 import mediapipe as mp
-import cv2, random
+import cv2, random, platform
+
 
 # mp tools
 mp_drawing = mp.solutions.drawing_utils
@@ -19,7 +20,11 @@ model_path = "python/poseEstimation/pose_landmarker_heavy.task"
 options = PoseLandmarkerOptions(
     base_options=BaseOptions(
         model_asset_path=model_path,
-        delegate=BaseOptions.Delegate.GPU,
+        delegate=(
+            BaseOptions.Delegate.CPU
+            if platform.system() == "Windows"
+            else BaseOptions.Delegate.GPU
+        ),
     ),
     num_poses=4,
     running_mode=VisionRunningMode.IMAGE,
