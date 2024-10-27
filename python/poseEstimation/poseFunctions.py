@@ -1,6 +1,6 @@
 import mediapipe as mp
-import cv2, random, platform
-
+import cv2, platform
+import numpy as np
 
 # mp tools
 mp_drawing = mp.solutions.drawing_utils
@@ -93,12 +93,27 @@ def drawLandmarksOnImage(image, detection_result):
     return image
 
 
-def calculatePoseSimilarities(key_points, multi_pose_results):
-    try:
-        # 시은 개발
-        return [
-            random.randint(0, 1000) / 1000
-            for _ in range(len(multi_pose_results.pose_landmarks))
-        ]
-    except:
-        return [0.972, 0.234, 0.448]
+def calculatePoseSimilarities(new_landmarks1, new_landmarks2):
+    # 두 리스트의 길이가 같아야 함
+    if len(new_landmarks1) != len(new_landmarks2):
+        raise ValueError("두 랜드마크 리스트의 길이가 같아야 합니다.")
+
+    # 두 리스트를 flatten (1차원 배열로 변환)
+    flat_landmarks1 = np.array(new_landmarks1).flatten()
+    flat_landmarks2 = np.array(new_landmarks2).flatten()
+
+    # 코사인 유사도 계산
+    dot_product = np.dot(flat_landmarks1, flat_landmarks2)
+    norm_vec1 = np.linalg.norm(flat_landmarks1)
+    norm_vec2 = np.linalg.norm(flat_landmarks2)
+
+    if norm_vec1 == 0 or norm_vec2 == 0:
+        cosine_similarity = 0  # 두 벡터 중 하나라도 크기가 0이면 유사도를 0으로 설정
+    else:
+        cosine_similarity = dot_product / (norm_vec1 * norm_vec2)
+
+    # 백분율로 변환
+    similarity_percentage = cosine_similarity * 100  # 일반적으로 80~100 값이 나옴
+    final = ((similarity_percentage - 80) / 20) * 100  # 0~100이 나오게 조절
+
+    return max(0, final)  # 음수 처리

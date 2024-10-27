@@ -10,12 +10,12 @@ def send_pose_to_unity(data):
             25712,
         )
 
-        print(data)
+        # print(data)
         message = json.dumps(data)
         sock.sendto(message.encode("utf-8"), unity_address)
 
         sock.close()
-        print("성공")
+        # print("성공")
         return True
     except Exception as e:
         print(f"Network error: {e}")
