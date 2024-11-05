@@ -10,11 +10,7 @@ model_path = "python/poseEstimation/pose_landmarker_heavy.task"
 options = mp.tasks.vision.PoseLandmarkerOptions(
     base_options=mp.tasks.BaseOptions(
         model_asset_path=model_path,
-        delegate=(
-            mp.tasks.BaseOptions.Delegate.CPU
-            if platform.system() == "Windows"
-            else mp.tasks.BaseOptions.Delegate.GPU
-        ),
+        delegate=mp.tasks.BaseOptions.Delegate.CPU,
     ),
     num_poses=4,
     running_mode=mp.tasks.vision.RunningMode.IMAGE,
@@ -24,6 +20,7 @@ options = mp.tasks.vision.PoseLandmarkerOptions(
 landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
 
 
+# 이 함수 담당!
 def calculate_pose_similarity(landmarks_answer, landmarks_real_time):
     if len(landmarks_answer) != len(landmarks_real_time):
         raise ValueError("리스트 길이 다름")
@@ -47,6 +44,9 @@ def calculate_pose_similarity(landmarks_answer, landmarks_real_time):
     return max(
         0, ((similarity_percentage - 80) / 20) * 100
     )  # 유사도 점수 반환 (0~100 범위)
+
+
+#################
 
 
 def process_frame(frame, answer_pose_landmarks):
