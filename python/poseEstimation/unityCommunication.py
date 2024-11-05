@@ -1,24 +1,22 @@
 import socket
 import json
 
+TARGET_IP = "117.16.153.148"
+
 
 def send_pose_to_unity(data):
+    """유니티 서버로 포즈 데이터를 전송하는 함수"""
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        unity_address = (
-            "117.16.153.148",
-            25712,
-        )
+        unity_address = (TARGET_IP, 25712)
 
-        # print(data)
         message = json.dumps(data)
         sock.sendto(message.encode("utf-8"), unity_address)
-
         sock.close()
-        # print("성공")
         return True
-    except Exception as e:
-        print(f"Network error: {e}")
+
+    except socket.error as e:
+        print(f"Network error while sending data to Unity: {e}")
         return False
 
 
