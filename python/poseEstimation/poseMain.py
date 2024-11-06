@@ -34,10 +34,16 @@ while True:
     else:
         for landmarks_answer, landmarks_real_time in landmarks_pairs:
             if isKeyPointTime():
+                
+                angles_answer = extract_angles(landmarks_answer, angle_pairs)
+                angles_real_time = extract_angles(landmarks_real_time, angle_pairs)
+                
                 similarity_score = calculate_pose_similarity(
-                    landmarks_answer, landmarks_real_time
+                    angles_answer, angles_real_time
                 )
                 print("유사도:", similarity_score)
+                print("정답 각도 배열:", angles_answer)
+                print("실시간 각도 배열:", angles_real_time)
 
                 # 수정 필요
                 # pose_landmarks_3D = [
@@ -62,3 +68,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
