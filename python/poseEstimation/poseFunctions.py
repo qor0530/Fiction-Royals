@@ -1,99 +1,106 @@
 import mediapipe as mp
-import cv2, random
+import cv2
+import numpy as np
+import platform
 
-# mp tools
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_pose = mp.solutions.pose
-
-# mp task tools
-BaseOptions = mp.tasks.BaseOptions
-PoseLandmarker = mp.tasks.vision.PoseLandmarker
-PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
-VisionRunningMode = mp.tasks.vision.RunningMode
-
-
-# model load
+# 모델 로드 경로 및 옵션 설정
 model_path = "python/poseEstimation/pose_landmarker_heavy.task"
 
-options = PoseLandmarkerOptions(
-    base_options=BaseOptions(
+# GPU 또는 CPU 설정
+options = mp.tasks.vision.PoseLandmarkerOptions(
+    base_options=mp.tasks.BaseOptions(
         model_asset_path=model_path,
-        delegate=BaseOptions.Delegate.GPU,
+        delegate=(
+            mp.tasks.BaseOptions.Delegate.CPU
+            if platform.system() == "Windows"
+            else mp.tasks.BaseOptions.Delegate.GPU
+        ),
     ),
     num_poses=4,
-    running_mode=VisionRunningMode.IMAGE,
+    running_mode=mp.tasks.vision.RunningMode.IMAGE,
 )
 
-landmarker = PoseLandmarker.create_from_options(options)
-
-# connections
-POSE_CONNECTIONS = [
-    (8, 6),
-    (6, 4),
-    (4, 0),
-    (0, 1),
-    (1, 3),
-    (3, 7),
-    (10, 9),
-    (18, 20),
-    (18, 16),
-    (16, 20),
-    (16, 14),
-    (14, 12),
-    (12, 11),
-    (11, 13),
-    (13, 15),
-    (15, 19),
-    (19, 17),
-    (17, 15),
-    (16, 22),
-    (15, 21),
-    (12, 24),
-    (24, 23),
-    (23, 11),
-    (24, 26),
-    (23, 25),
-    (26, 28),
-    (25, 27),
-    (28, 30),
-    (30, 32),
-    (32, 28),
-    (27, 31),
-    (31, 29),
-    (29, 27),
-]
+# 포즈 랜드마커 객체 생성
+landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
 
 
-def drawLandmarksOnImage(image, detection_result):
-    pose_landmarks_list = detection_result.pose_landmarks
+def calculate_pose_similarity(landmarks_answer, landmarks_real_time):
+    if len(landmarks_answer) != len(landmarks_real_time):
+        raise ValueError("리스트 길이 다름")
 
-    for pose_landmarks in pose_landmarks_list:
-        for landmark in pose_landmarks:
-            x, y = int(landmark.x * image.shape[1]), int(landmark.y * image.shape[0])
-            cv2.circle(image, (x, y), 5, (0, 255, 0), -1)
+    flat_answer = np.array(landmarks_answer).flatten()
+    flat_real_time = np.array(landmarks_real_time).flatten()
 
-        # 랜드마크들 연결하기 (라인 그리기)
-        for start_idx, end_idx in POSE_CONNECTIONS:
-            start_point = pose_landmarks[start_idx]
-            end_point = pose_landmarks[end_idx]
-            start_x, start_y = int(start_point.x * image.shape[1]), int(
-                start_point.y * image.shape[0]
-            )
-            end_x, end_y = int(end_point.x * image.shape[1]), int(
-                end_point.y * image.shape[0]
-            )
-            cv2.line(image, (start_x, start_y), (end_x, end_y), (255, 0, 0), 2)
+    dot_product = np.dot(flat_answer, flat_real_time)
+    norm_answer = np.linalg.norm(flat_answer)
+    norm_real_time = np.linalg.norm(flat_real_time)
 
-    return image
+    if norm_answer == 0 or norm_real_time == 0:
+        return 0  # 벡터 크기가 0인 경우 유사도 0 반환
+
+    else:
+        cosine_similarity = dot_product / (norm_answer * norm_real_time)  # 0~1
+
+        # 못하면: 0  최고:100
+        similarity_percentage = cosine_similarity * 100  # 대략 80~100 사이 값
+
+    return max(
+        0, ((similarity_percentage - 80) / 20) * 100
+    )  # 유사도 점수 반환 (0~100 범위)
 
 
-def calculatePoseSimilarities(key_points, multi_pose_results):
+def process_frame(frame, answer_pose_landmarks):
+    """카메라 프레임을 처리하여 정답 포즈와 비교할 실시간 랜드마크 좌표 리스트를 반환"""
+    real_time_pose_result = landmarker.detect(
+        mp.Image(
+            image_format=mp.ImageFormat.SRGBA,
+            data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA),
+        )
+    )
+
+    landmarks_pairs = []
     try:
-        # 시은 개발
-        return [
-            random.randint(0, 1000) / 1000
-            for _ in range(len(multi_pose_results.pose_landmarks))
-        ]
-    except:
-        return [0.972, 0.234, 0.448]
+        for answer_landmarks, real_time_landmarks in zip(
+            answer_pose_landmarks, real_time_pose_result.pose_landmarks
+        ):
+            normalized_answer, normalized_real_time = normalize_landmarks(
+                answer_landmarks, real_time_landmarks
+            )
+            landmarks_pairs.append((normalized_answer, normalized_real_time))
+        return landmarks_pairs
+    except Exception as e:
+        print(f"Error processing frame: {e}")
+        return None
+
+
+def normalize_landmarks(
+    pose_landmarks_answer, pose_landmarks_real_time, canvas_size=500, offset=250
+):
+    """정답 포즈와 실시간 포즈 랜드마크를 중심으로 정규화하여 캔버스 크기에 맞게 조정"""
+    center_answer = get_center_point(pose_landmarks_answer, [23, 24])
+    center_real_time = get_center_point(pose_landmarks_real_time, [23, 24])
+
+    landmarks_answer = [
+        (
+            int((lm.x - center_answer[0]) * canvas_size) + offset,
+            int((lm.y - center_answer[1]) * canvas_size) + offset,
+        )
+        for lm in pose_landmarks_answer
+    ]
+    landmarks_real_time = [
+        (
+            int((lm.x - center_real_time[0]) * canvas_size) + offset,
+            int((lm.y - center_real_time[1]) * canvas_size) + offset,
+        )
+        for lm in pose_landmarks_real_time
+    ]
+
+    return landmarks_answer, landmarks_real_time
+
+
+def get_center_point(landmarks, indices):
+    """특정 랜드마크 인덱스를 기준으로 중심 좌표를 계산"""
+    return (
+        sum(landmarks[i].x for i in indices) / len(indices),
+        sum(landmarks[i].y for i in indices) / len(indices),
+    )
