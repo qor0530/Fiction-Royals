@@ -50,22 +50,31 @@ def extract_3d_pose(video_path, output_video_path):
         # 포즈가 추출되었으면
         if results.pose_landmarks:
             pose_3d = []
+        if results.pose_landmarks:
             for landmark in results.pose_landmarks.landmark:
                 pose_3d.append({
-                    "x": landmark.x,  # 정규화된 x 좌표
-                    "y": landmark.y,  # 정규화된 y 좌표
+                    "x": landmark.x if landmark.visibility > 0.5 else None,  # visibility 기준으로 확인
+                    "y": landmark.y if landmark.visibility > 0.5 else None,
                 })
-            pose_3d_results.append(pose_3d)
+        else:
+            # 포즈가 아예 인식되지 않으면 모든 관절을 None으로 처리
+            for _ in range(33):  # 포즈 랜드마크는 총 33개
+                pose_3d.append({
+                    "x": None,
+                    "y": None,
+                })
 
-            # 포즈 시각화
-            image.flags.writeable = True
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-            mp_drawing.draw_landmarks(
-                image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-            cv2.imshow('3D Pose', image)
-            out.write(image)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+        pose_3d_results.append(pose_3d)
+
+        # 포즈 시각화
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        mp_drawing.draw_landmarks(
+            image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+        cv2.imshow('3D Pose', image)
+        out.write(image)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
     cap.release()
     out.release()
@@ -82,27 +91,39 @@ def save_pose_data_as_txt(pose_data, output_file, frame_size, frame_interval, vi
         # 포즈 데이터 저장
         for frame_data in pose_data:
             for point in frame_data:
-                f.write(f"{point['x']},{point['y']}\n")
+                x = "None" if point['x'] is None else point['x']
+                y = "None" if point['y'] is None else point['y']
+                f.write(f"{x},{y}\n")
             f.write("\n")
 
 
 def main():
+    # 사용자로부터 파일 이름을 입력받음
+    base_filename = input("비디오 파일 이름 입력: ")
+    video_filename = f"{base_filename}.mp4"
+
+    # 파일 경로 설정
     script_dir = os.path.dirname(os.path.abspath(__file__))
     video_dir = os.path.join(script_dir, 'videoFile')
     output_dir = os.path.join(script_dir, 'outputData')
 
-    video_filename = 'tell_me_short.mp4'  # 비디오 파일 이름
     video_path = os.path.join(video_dir, video_filename)
+    output_txt_file = os.path.join(
+        output_dir, f"output_txt_{base_filename}.txt")
+    output_video_path = os.path.join(
+        output_dir, f"output_video_{base_filename}.mp4")
 
-    output_file = os.path.join(output_dir, 'output_pose_data.txt')
-    output_video_path = os.path.join(output_dir, 'output_pose_video.mp4')
+    if not os.path.isfile(video_path):
+        print(f"{video_path} 파일이 존재하지 않습니다.")
+        return
 
+    # 관절 데이터 추출
     pose_data, frame_size, frame_interval, video_length = extract_3d_pose(
         video_path, output_video_path)
     if pose_data:
-        save_pose_data_as_txt(pose_data, output_file,
+        save_pose_data_as_txt(pose_data, output_txt_file,
                               frame_size, frame_interval, video_length)
-        print(f"포즈 데이터를 {output_file}에 저장했습니다.")
+        print(f"포즈 데이터를 {output_txt_file}에 저장했습니다.")
         print(f"포즈 비디오를 {output_video_path}에 저장했습니다.")
     else:
         print("저장할 포즈 데이터가 없습니다.")
