@@ -1,11 +1,15 @@
 import socket
 import json
 
-TARGET_IP = "117.16.153.148"
+TARGET_IP = "127.0.0.1"
 
 
-def send_pose_to_unity(data):
-    """유니티 서버로 포즈 데이터를 전송하는 함수"""
+def send_to_unity(data):
+    """유니티 서버로 데이터를 전송하는 함수"""
+    # n명의 (score, 3D_pose) 데이터
+    # ex. 정답모델의 왼쪽 손목 3D Z좌표 => data[0][1][16][2]
+    # ex. 3번유저의 오른쪽 발 3D X좌표 => data[3][1][27][0]
+
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         unity_address = (TARGET_IP, 25712)
