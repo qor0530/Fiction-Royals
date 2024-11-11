@@ -26,30 +26,83 @@ print("* 포즈 추적기 생성 중...")
 landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
 print("* 포즈 추적기 생성 완료.")
 
+# 각도 계산을 위한 주요 관절 인덱스 쌍
+ANGLE_PAIRS = [
+    (11, 13, 15),  # 오른쪽 팔
+    (12, 14, 16),  # 왼쪽 팔
+    (25, 27, 29),  # 오른쪽 다리
+    (26, 28, 30),  # 왼쪽 다리
+    (11, 23, 25),  # 오른쪽 몸통
+    (12, 24, 26),  # 왼쪽 몸통
+    (13, 11, 23),  # 오른쪽 겨드랑이 (11번 기준 13, 23)
+    (14, 12, 24),  # 왼쪽 겨드랑이 (12번 기준 14, 24)
+    (23, 24, 26),  # 24번 기준으로 23, 26 각도
+    (24, 23, 25),  # 23번 기준으로 24, 25 각도
+]
 
-def calculate_pose_similarity(landmarks_answer, landmarks_real_time):
-    if len(landmarks_answer) != len(landmarks_real_time):
-        raise ValueError("리스트 길이 다름")
 
-    flat_answer = np.array(landmarks_answer).flatten()
-    flat_real_time = np.array(landmarks_real_time).flatten()
+def calculate_angle(p1, p2, p3):
+    """세 점을 이용해 p2에서 p1, p3 사이의 각도를 계산하고 반환 (도 단위)"""
+    u = [p1[0] - p2[0], p1[1] - p2[1]]
+    v = [p3[0] - p2[0], p3[1] - p2[1]]
 
-    dot_product = np.dot(flat_answer, flat_real_time)
-    norm_answer = np.linalg.norm(flat_answer)
-    norm_real_time = np.linalg.norm(flat_real_time)
+    dot_product = np.dot(u, v)
+    u_norm = np.linalg.norm(u)
+    v_norm = np.linalg.norm(v)
 
-    if norm_answer == 0 or norm_real_time == 0:
-        return 0  # 벡터 크기가 0인 경우 유사도 0 반환
+    if u_norm == 0 or v_norm == 0:
+        return None
 
-    else:
-        cosine_similarity = dot_product / (norm_answer * norm_real_time)  # 0~1
+    cos_theta = dot_product / (u_norm * v_norm)
+    angle = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+    angle_degrees = np.degrees(angle)
 
-        # 못하면: 0  최고:100
-        similarity_percentage = cosine_similarity * 100  # 대략 80~100 사이 값
+    return angle_degrees
 
-    return max(
-        0, ((similarity_percentage - 80) / 20) * 100
-    )  # 유사도 점수 반환 (0~100 범위)
+
+def extract_angles(landmarks):
+    """지정된 angle_pairs에 따라 landmarks에서 각도를 계산하여 배열로 반환"""
+    angles = []
+    for i1, i2, i3 in ANGLE_PAIRS:
+        angle = calculate_angle(landmarks[i1], landmarks[i2], landmarks[i3])
+        if angle is None:
+            return None
+        else:
+            angles.append(angle)
+    return np.array(angles)
+
+
+def calculate_pose_similarity_vectorized(
+    normalized_answers_2d, normalized_real_times_2d
+):
+    """
+    여러 사람의 두 포즈 배열에서 각도를 계산한 후 코사인 유사도를 계산하여 0~100 범위로 반환
+    """
+    # 각 사람별 포즈에서 각도 추출 (여러 명에 대해 적용)
+    angles_answers = [extract_angles(ans) for ans in normalized_answers_2d]
+    angles_real_times = [extract_angles(rt) for rt in normalized_real_times_2d]
+
+    # 하나라도 None이 있으면 모든 사람의 유사도를 50으로 설정
+    if any(angles is None for angles in angles_answers) or any(
+        angles is None for angles in angles_real_times
+    ):
+        return np.full(len(normalized_answers_2d), 50.0)
+
+    # None이 없을 경우 유사도 계산
+    angles_answers = np.array(angles_answers)
+    angles_real_times = np.array(angles_real_times)
+
+    # 벡터 내적과 크기 계산 (코사인 유사도)
+    dot_products = np.einsum("ij,ij->i", angles_answers, angles_real_times)
+    norms_answers = np.linalg.norm(angles_answers, axis=1)
+    norms_real_times = np.linalg.norm(angles_real_times, axis=1)
+
+    # 코사인 유사도 계산 및 0~100으로 변환
+    cosine_similarities = dot_products / (norms_answers * norms_real_times + 1e-5)
+    similarity_percentages = ((cosine_similarities - 0.6) / 0.4) * 100
+    similarity_percentages = np.clip(similarity_percentages, 0, 100)
+
+    return similarity_percentages.astype(int)
 
 
 def process_frame(frame):
@@ -67,27 +120,50 @@ def process_frame(frame):
         )
     )
 
-    landmarks_pairs: list[tuple[list[tuple[float, float]]]] = []
-
     try:
-        for real_time_landmarks_2d, real_time_landmarks_3d in zip(
-            real_time_pose_result.pose_landmarks,
-            real_time_pose_result.pose_world_landmarks,
-        ):
-            # 사람 한 명에 대한 데이터로 33 * 2 와 33 * 3 형태(둘 다 list)
-            normalized_real_time_2d = normalize_landmarks(real_time_landmarks_2d)
-            converted_real_time_landmarks_3d = [
-                (lm.x, lm.y, lm.z) for lm in real_time_landmarks_3d
+        # 2D 및 3D 랜드마크 추출 및 벡터화
+        real_time_landmarks_2d = np.array(
+            [
+                [(lm.x, lm.y) for lm in landmarks]
+                for landmarks in real_time_pose_result.pose_landmarks
             ]
+        )
 
-            landmarks_pairs.append(
-                (normalized_real_time_2d, converted_real_time_landmarks_3d)
-            )
-        return sorted(landmarks_pairs, key=lambda k: k[1][0].x)
+        real_time_landmarks_3d = np.array(
+            [
+                [(lm.x, lm.y, lm.z) for lm in landmarks]
+                for landmarks in real_time_pose_result.pose_world_landmarks
+            ]
+        )
+
+        if real_time_landmarks_2d.shape[0] == 0:
+            return None, None, None, None
+
+        # 중심 좌표 계산 및 정규화
+        centers_2d = (real_time_landmarks_2d[:, [23, 24]].mean(axis=1)).reshape(
+            -1, 1, 2
+        )
+        normalized_2d = (real_time_landmarks_2d - centers_2d) * 500 + 250
+        normalized_2d = normalized_2d.astype(int)
+
+        # 0번 관절의 x좌표를 기준으로 정렬
+        sorted_indices = np.argsort(
+            real_time_landmarks_2d[:, 0, 0]
+        )  # 0번 관절의 x좌표 기준
+        real_time_landmarks_2d_sorted = real_time_landmarks_2d[sorted_indices]
+        normalized_2d_sorted = normalized_2d[sorted_indices]
+        real_time_landmarks_3d_sorted = real_time_landmarks_3d[sorted_indices]
+
+        return (
+            real_time_landmarks_2d_sorted.shape[0],
+            real_time_landmarks_2d_sorted,
+            normalized_2d_sorted,
+            real_time_landmarks_3d_sorted,
+        )
 
     except Exception as e:
         print(f"Error processing frame: {e}")
-        return None
+        return None, None, None, None
 
 
 def normalize_landmarks(
@@ -96,7 +172,7 @@ def normalize_landmarks(
     """포즈 랜드마크를 화면의 중심으로 정규화하여 캔버스 크기에 맞게 조정"""
     center = get_center_point(pose_landmarks)
 
-    landmarks = [
+    return [
         (
             int((lm.x - center[0]) * canvas_size) + offset,
             int((lm.y - center[1]) * canvas_size) + offset,
@@ -104,11 +180,10 @@ def normalize_landmarks(
         for lm in pose_landmarks
     ]
 
-    return landmarks
-
 
 def get_center_point(landmarks) -> tuple[float]:
     """골반 인덱스를 기준으로 중심 좌표를 계산"""
-    center_x = (landmarks[23].x + landmarks[24].x) / 2
-    center_y = (landmarks[23].y + landmarks[24].y) / 2
-    return center_x, center_y
+    return (
+        (landmarks[23].x + landmarks[24].x) / 2,
+        (landmarks[23].y + landmarks[24].y) / 2,
+    )

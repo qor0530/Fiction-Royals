@@ -48,32 +48,29 @@ class Painter:
     def __init__(self):
         pass
 
-    def draw_realtime_frame(self, image, human_index, detection_result):
+    def draw_realtime_frame(self, frame, human_index, landmarks_2d):
         """이미지에 포즈 랜드마크와 연결선을 그려주는 함수"""
         try:
             color = Painter.COLORS[human_index]
 
-            for pose_landmarks in detection_result:
-                for landmark in pose_landmarks:
-                    x, y = int(landmark.x * image.shape[1]), int(
-                        landmark.y * image.shape[0]
-                    )
-                    cv2.circle(image, (x, y), 5, (0, 0, 0), -1)
+            for u, v in landmarks_2d:
+                x, y = int(u * frame.shape[1]), int(v * frame.shape[0])
+                cv2.circle(frame, (x, y), 5, (0, 0, 0), -1)
 
-                for start_idx, end_idx in Painter.POSE_CONNECTIONS:
-                    start_point = pose_landmarks[start_idx]
-                    end_point = pose_landmarks[end_idx]
-                    start_x, start_y = int(start_point.x * image.shape[1]), int(
-                        start_point.y * image.shape[0]
-                    )
-                    end_x, end_y = int(end_point.x * image.shape[1]), int(
-                        end_point.y * image.shape[0]
-                    )
-                    cv2.line(image, (start_x, start_y), (end_x, end_y), color, 2)
+            for start_idx, end_idx in Painter.POSE_CONNECTIONS:
+                start_u, start_v = landmarks_2d[start_idx]
+                end_u, end_v = landmarks_2d[end_idx]
+
+                start_x = int(start_u * frame.shape[1])
+                start_y = int(start_v * frame.shape[0])
+
+                end_x = int(end_u * frame.shape[1])
+                end_y = int(end_v * frame.shape[0])
+                cv2.line(frame, (start_x, start_y), (end_x, end_y), color, 2)
         except Exception as e:
             print(f"Error drawing landmarks: {e}")
 
-        return image
+        return frame
 
     def draw_pose_comparisons(
         self, canvas, human_index, landmarks_answer, landmarks_real_time

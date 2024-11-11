@@ -1,6 +1,3 @@
-from python.poseEstimation.modules.poseFunctions import normalize_landmarks
-
-
 def loadDanceDatabase():
     # 추후 파일 읽기로 구현
     ########## 이 부분을 가흔이의 정답 DB 읽어오는 코드로 변경 ##########
