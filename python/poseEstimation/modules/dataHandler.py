@@ -1,4 +1,4 @@
-def loadDanceDatabase():
+def load_dance_database():
     # 추후 파일 읽기로 구현
     ########## 이 부분을 가흔이의 정답 DB 읽어오는 코드로 변경 ##########
 
@@ -73,6 +73,7 @@ def loadDanceDatabase():
         (-0.5732921361923218, 0.7279732823371887, -0.05549197643995285),
     ]
 
+    print("* 데이터베이스 준비 완료.")
     return {
         0.1: (normalized_answer_2d, converted_answer_landmarks_3d),
         0.2: (normalized_answer_2d, converted_answer_landmarks_3d),
@@ -89,7 +90,7 @@ def loadDanceDatabase():
     }
 
 
-def isKeyPointTime(current_time):
+def is_keypoint_time(current_time):
     # 추후 구현
     return True
 

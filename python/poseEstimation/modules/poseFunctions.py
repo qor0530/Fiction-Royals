@@ -26,7 +26,6 @@ print("* 포즈 추적기 생성 중...")
 landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
 print("* 포즈 추적기 생성 완료.")
 
-# 각도 계산을 위한 주요 관절 인덱스 쌍
 ANGLE_PAIRS = [
     (11, 13, 15),  # 오른쪽 팔
     (12, 14, 16),  # 왼쪽 팔

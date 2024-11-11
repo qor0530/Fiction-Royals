@@ -79,7 +79,6 @@ class Painter:
         color_answer = Painter.COLORS[0]
         color_realtime = Painter.COLORS[human_index + 1]
 
-        # 각 랜드마크와 연결선을 그린다
         for (x_answer, y_answer), (x_real, y_real) in zip(
             landmarks_answer, landmarks_real_time
         ):
@@ -93,13 +92,17 @@ class Painter:
                 landmarks_answer[end_idx],
                 color_answer,
                 2,
-            )  # 정답 포즈 연결선
+            )
             cv2.line(
                 canvas,
                 landmarks_real_time[start_idx],
                 landmarks_real_time[end_idx],
                 color_realtime,
                 2,
-            )  # 실시간 포즈 연결선
+            )
 
         return canvas
+
+
+painter = Painter()
+print("* 시각화 도구 준비 완료.")
