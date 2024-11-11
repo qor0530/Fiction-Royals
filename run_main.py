@@ -41,7 +41,7 @@ try:
     while True:
         ret, frame = cap.read()
         frame = cv2.flip(frame, 1)
-        # canvas = np.ones((500, 500, 3), dtype=np.uint8) * 255
+        canvas = np.ones((500, 500, 3), dtype=np.uint8) * 255
         current_time = round(time.time() - start_time, 1)
         if not ret:
             break
@@ -69,12 +69,12 @@ try:
 
                 # 그림 그리기
                 frame = painter.draw_realtime_frame(frame, human_index, landmark_2d)
-                # canvas = painter.draw_pose_comparisons(
-                #     canvas,
-                #     human_index,
-                #     normalized_answer_2d,
-                #     normalized_real_time_2d,
-                # )
+                canvas = painter.draw_pose_comparisons(
+                    canvas,
+                    human_index,
+                    normalized_answer_2d,
+                    normalized_real_time_2d,
+                )
 
                 # 유니티 데이터 추가
                 unity_scores_and_poses.append(
@@ -87,7 +87,7 @@ try:
                 pass
 
         cv2.imshow("Dance Pose Estimation", frame)
-        # cv2.imshow("Answer Pose Comparisons", canvas)
+        cv2.imshow("Answer Pose Comparisons", canvas)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

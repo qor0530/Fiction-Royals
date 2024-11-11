@@ -76,7 +76,8 @@ class Painter:
         self, canvas, human_index, landmarks_answer, landmarks_real_time
     ):
         """정답 포즈와 실시간 포즈 랜드마크를 캔버스에 그려주는 함수"""
-        color = Painter.COLORS[human_index]
+        color_answer = Painter.COLORS[0]
+        color_realtime = Painter.COLORS[human_index + 1]
 
         # 각 랜드마크와 연결선을 그린다
         for (x_answer, y_answer), (x_real, y_real) in zip(
@@ -90,14 +91,14 @@ class Painter:
                 canvas,
                 landmarks_answer[start_idx],
                 landmarks_answer[end_idx],
-                color,
+                color_answer,
                 2,
             )  # 정답 포즈 연결선
             cv2.line(
                 canvas,
                 landmarks_real_time[start_idx],
                 landmarks_real_time[end_idx],
-                color,
+                color_realtime,
                 2,
             )  # 실시간 포즈 연결선
 
