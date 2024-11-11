@@ -17,17 +17,20 @@ def extract_3d_pose(video_path, output_video_path):
         print(f"비디오 스트림 {video_path}을 제대로 읽을 수 없습니다.")
         return [], None, None
 
+    # 고정할 FPS 설정
+    fixed_fps = 10
+
     # 비디오 정보 가져오기
-    fps = cap.get(cv2.CAP_PROP_FPS)  # 30으로 나옴
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    original_fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    video_length = total_frames / fps
+    video_length = total_frames / original_fps
 
     # 비디오 저장 설정
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_video_path, fourcc, fps,
-                          (frame_width, frame_height))
+    out = cv2.VideoWriter(output_video_path, fourcc,
+                          fixed_fps, (frame_width, frame_height))
 
     pose = mp_pose.Pose(static_image_mode=False,
                         min_detection_confidence=0.5, min_tracking_confidence=0.5)
@@ -35,51 +38,59 @@ def extract_3d_pose(video_path, output_video_path):
     # 결과 저장용 리스트
     pose_3d_results = []
 
+    # 프레임 간격 설정
+    frame_interval = int(original_fps / fixed_fps)
+
+    frame_count = 0
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        # BGR을 RGB로 변환
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image.flags.writeable = False
+        # 설정한 프레임 간격에 맞춰 프레임을 샘플링
+        if frame_count % frame_interval == 0:
+            # BGR을 RGB로 변환
+            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            image.flags.writeable = False
 
-        # 포즈 추출
-        results = pose.process(image)
+            # 포즈 추출
+            results = pose.process(image)
 
-        # 포즈가 추출되었으면
-        if results.pose_landmarks:
+            # 포즈가 추출되었으면
             pose_3d = []
-        if results.pose_landmarks:
-            for landmark in results.pose_landmarks.landmark:
-                pose_3d.append({
-                    "x": landmark.x if landmark.visibility > 0.5 else None,  # visibility 기준으로 확인
-                    "y": landmark.y if landmark.visibility > 0.5 else None,
-                })
-        else:
-            # 포즈가 아예 인식되지 않으면 모든 관절을 None으로 처리
-            for _ in range(33):  # 포즈 랜드마크는 총 33개
-                pose_3d.append({
-                    "x": None,
-                    "y": None,
-                })
+            if results.pose_landmarks:
+                for landmark in results.pose_landmarks.landmark:
+                    pose_3d.append({
+                        "x": landmark.x if landmark.visibility > 0.5 else None,
+                        "y": landmark.y if landmark.visibility > 0.5 else None,
+                    })
+            else:
+                # 포즈가 아예 인식되지 않으면 모든 관절을 None으로 처리
+                for _ in range(33):  # 포즈 랜드마크는 총 33개
+                    pose_3d.append({
+                        "x": None,
+                        "y": None,
+                    })
 
-        pose_3d_results.append(pose_3d)
+            pose_3d_results.append(pose_3d)
 
-        # 포즈 시각화
-        image.flags.writeable = True
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        mp_drawing.draw_landmarks(
-            image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-        cv2.imshow('3D Pose', image)
-        out.write(image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            # 포즈 시각화
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            mp_drawing.draw_landmarks(
+                image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+            cv2.imshow('3D Pose', image)
+            out.write(image)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        frame_count += 1
 
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-    return pose_3d_results, (frame_width, frame_height), (1000 / fps), video_length
+    return pose_3d_results, (frame_width, frame_height), (1000 / fixed_fps), video_length
 
 
 def save_pose_data_as_txt(pose_data, output_file, frame_size, frame_interval, video_length):
@@ -104,8 +115,8 @@ def main():
 
     # 파일 경로 설정
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    video_dir = os.path.join(script_dir, 'videoFile')
-    output_dir = os.path.join(script_dir, 'outputData')
+    video_dir = os.path.join(script_dir, '..', '..', 'db', 'videoFile')
+    output_dir = os.path.join(script_dir, '..', '..', 'db', 'outputData')
 
     video_path = os.path.join(video_dir, video_filename)
     output_txt_file = os.path.join(
