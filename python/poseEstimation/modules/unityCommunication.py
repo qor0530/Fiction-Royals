@@ -46,9 +46,15 @@ if __name__ == "__main__":
 
     # 데이터 수신
     while True:
-        data, addr = sock.recvfrom(8192)
+        data, addr = sock.recvfrom(16384)
         data = json.loads(data.decode("utf-8"))
-        print(data.keys())
-        a = [info_dict for info_dict in data.values()]
-        print(a[0]["score"], a[1]["score"])
-        print(len(a[0]["coord_3d"]), len(a[1]["coord_3d"]))
+        data = [info_dict for info_dict in data.values()]
+
+        answer_3D_pose = data[0]["coord_3d"]
+        print("--------------------------------------------")
+        for user_id, d in enumerate(data[1:]):
+            score, coord_3d = d["score"], d["coord_3d"]
+            print(
+                f"유저 {user_id+1}: {score} / 수신 좌표 형태: {len(coord_3d), len(coord_3d[0])}"
+            )
+        print()

@@ -46,42 +46,46 @@ try:
         if not ret:
             break
 
-        num_of_humans, landmarks_2d, landmarks_2d_normed, landmarks_3d = process_frame(
-            frame
-        )
+        (
+            num_of_humans,
+            sorted_real_time_2Ds,
+            sorted_centered_real_time_2Ds,
+            sorted_real_time_3Ds,
+        ) = process_frame(frame)
 
-        if landmarks_2d_normed is not None:
-            normalized_answer_2d, answer_landmarks_3d = read_answer(
+        if num_of_humans > 0:
+            width, height, centered_answer_2D, answer_3D = read_answer(
                 database, current_time
             )
-            unity_scores_and_poses = {0: (100.0, answer_landmarks_3d)}
+            unity_scores_and_poses = {0: (100.0, answer_3D)}
 
             similarity_scores = calculate_pose_similarity_vectorized(
-                np.array([normalized_answer_2d] * len(landmarks_2d_normed)),
-                np.array(landmarks_2d_normed),
+                num_of_humans, centered_answer_2D, sorted_centered_real_time_2Ds
             )
 
             for human_index, similarity_score in enumerate(similarity_scores):
-                landmark_2d = landmarks_2d[human_index]
-                normalized_real_time_2d = landmarks_2d_normed[human_index]
-                real_time_landmarks_3d = landmarks_3d[human_index]
-
-                # 그림 그리기
-                frame = painter.draw_realtime_frame(frame, human_index, landmark_2d)
-                canvas = painter.draw_pose_comparisons(
-                    canvas,
-                    human_index,
-                    normalized_answer_2d,
-                    normalized_real_time_2d,
-                )
+                real_time_2D = sorted_real_time_2Ds[human_index]
+                real_time_3D = sorted_real_time_3Ds[human_index]
+                centered_real_time_2D = sorted_centered_real_time_2Ds[human_index]
 
                 # 유니티 데이터 추가
                 unity_scores_and_poses[human_index + 1] = (
                     similarity_score,
-                    real_time_landmarks_3d.tolist(),
+                    real_time_3D.tolist(),
                 )
 
-            print("Scores:", similarity_scores)
+                # 그림 그리기
+                frame = painter.draw_realtime_frame(
+                    frame, human_index + 1, real_time_2D
+                )
+                canvas = painter.draw_pose_comparisons(
+                    canvas,
+                    human_index + 1,
+                    centered_answer_2D,
+                    centered_real_time_2D,
+                )
+
+            print("개인별 점수:", similarity_scores)
             if is_keypoint_time(current_time):
                 send_to_unity(unity_scores_and_poses)
                 pass
