@@ -95,7 +95,7 @@ def is_keypoint_time(current_time):
     return True
 
 
-def read_answer(database, current_time) -> tuple[list, list]:
+def read_answer(database, current_time):
     # 추후 구현
     print(current_time, "s |", sep="", end=" ")
     idx = 0.1
