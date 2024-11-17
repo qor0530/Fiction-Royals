@@ -1,209 +1,102 @@
+import os
+
+
 def load_dance_database():
-    # 추후 파일 읽기로 구현
-    ########## 이 부분을 가흔이의 정답 DB 읽어오는 코드로 변경 ##########
+    """
+    db 디렉토리 내 모든 poses.txt 파일을 읽어 데이터를 반환
+    :param db_path: db 디렉토리 경로
+    :return: 파싱된 데이터 딕셔너리
+    """
+    db_path = os.path.join(os.getcwd(), "db")
+    result = {}
 
-    answer_landmarks_2d = [
-        (0.566251636, 0.43603763),
-        (0.569315791, 0.428874224),
-        (0.574429095, 0.428815186),
-        (0.579348, 0.428763777),
-        (0.551284552, 0.430249542),
-        (0.545299649, 0.431315929),
-        (0.536635637, 0.432348281),
-        (0.575687051, 0.435359567),
-        (0.522192061, 0.44055146),
-        (0.574395835, 0.44647637),
-        (0.550638139, 0.448479176),
-        (0.61596477, 0.484852),
-        (0.462910205, 0.499392033),
-        (0.649234414, 0.410794377),
-        (0.341892272, 0.537727594),
-        (0.649609685, 0.335579187),
-        (0.419036508, 0.586630166),
-        (0.644915164, 0.319060892),
-        (0.427568704, 0.602229238),
-        (0.639370799, 0.318022043),
-        (0.439209, 0.595044553),
-        (0.639122725, 0.321736187),
-        (0.440642059, 0.590079188),
-        (0.58263588, 0.650668),
-        (0.478148788, 0.645996749),
-        (0.64502281, 0.784820199),
-        (0.43867451, 0.777948618),
-        (0.68978256, 0.898213506),
-        (0.379751414, 0.889975727),
-        (0.686026037, 0.915638268),
-        (0.375438094, 0.902554631),
-        (0.779432058, 0.926567137),
-        (0.420609206, 0.937357962),
-    ]
-    answer_landmarks_3d = [
-        (-0.43727564811706543, -0.30032679438591003, -0.3849524259567261),
-        (-0.43142667412757874, -0.33429262042045593, -0.3867550194263458),
-        (-0.4330572485923767, -0.33410361409187317, -0.37716224789619446),
-        (-0.4336633086204529, -0.33270519971847534, -0.37859484553337097),
-        (-0.45972687005996704, -0.3263115882873535, -0.3940877914428711),
-        (-0.45783117413520813, -0.32696041464805603, -0.404888391494751),
-        (-0.44522953033447266, -0.3206246793270111, -0.3844701051712036),
-        (-0.3833053410053253, -0.4102371335029602, -0.29024016857147217),
-        (-0.45418399572372437, -0.28523963689804077, -0.26014238595962524),
-        (-0.405250608921051, -0.3307318389415741, -0.3364866375923157),
-        (-0.4087167978286743, -0.2870800197124481, -0.35777777433395386),
-        (-0.27067968249320984, -0.452536940574646, -0.14668165147304535),
-        (-0.5084015130996704, -0.23653052747249603, -0.08049526810646057),
-        (-0.22994059324264526, -0.6116040945053101, -0.12489988654851913),
-        (-0.6304511427879333, -0.07821023464202881, -0.16523227095603943),
-        (-0.1426747441291809, -0.7355309724807739, -0.09834575653076172),
-        (-0.8222062587738037, -0.023136764764785767, -0.3212057650089264),
-        (-0.13162779808044434, -0.7668865919113159, -0.08871200680732727),
-        (-0.8585522174835205, -0.037090003490448, -0.3798617422580719),
-        (-0.1375337541103363, -0.7552145719528198, -0.11958429962396622),
-        (-0.8597759008407593, -0.09607228636741638, -0.3915078938007355),
-        (-0.11980196833610535, -0.7282341718673706, -0.11400052905082703),
-        (-0.8303636312484741, -0.03959214687347412, -0.3375690281391144),
-        (0.07601739466190338, -0.05146893113851547, 0.011556041426956654),
-        (-0.08021347224712372, 0.04621221125125885, -0.007473418023437262),
-        (0.2741943597793579, 0.28189417719841003, -0.05302029103040695),
-        (-0.30474597215652466, 0.2676483988761902, -0.06611897796392441),
-        (0.42376476526260376, 0.6333851218223572, 0.10239139199256897),
-        (-0.43576276302337646, 0.7075188755989075, 0.03948541730642319),
-        (0.42394018173217773, 0.686928391456604, 0.12386489659547806),
-        (-0.46053412556648254, 0.7477656602859497, 0.012583951465785503),
-        (0.44388845562934875, 0.724605917930603, 0.05905136093497276),
-        (-0.5732921361923218, 0.7279732823371887, -0.05549197643995285),
-    ]
+    for folder_name in os.listdir(db_path):
+        folder_path = os.path.join(db_path, folder_name)
 
-    print("* 데이터베이스 준비 완료.")
-    return {
-        0: {
-            "width": 1280,
-            "height": 720,
-            "fps": 30,
-            "landmarks": {
-                0.0: (answer_landmarks_2d, answer_landmarks_3d),
-                0.1: (answer_landmarks_2d, answer_landmarks_3d),
-                0.2: (answer_landmarks_2d, answer_landmarks_3d),
-                0.3: (answer_landmarks_2d, answer_landmarks_3d),
-                0.4: (answer_landmarks_2d, answer_landmarks_3d),
-                0.5: (answer_landmarks_2d, answer_landmarks_3d),
-                0.6: (answer_landmarks_2d, answer_landmarks_3d),
-                0.7: (answer_landmarks_2d, answer_landmarks_3d),
-                0.8: (answer_landmarks_2d, answer_landmarks_3d),
-                0.9: (answer_landmarks_2d, answer_landmarks_3d),
-                1.0: (answer_landmarks_2d, answer_landmarks_3d),
-                1.1: (answer_landmarks_2d, answer_landmarks_3d),
-                1.2: (answer_landmarks_2d, answer_landmarks_3d),
-                1.3: (answer_landmarks_2d, answer_landmarks_3d),
-                1.4: (answer_landmarks_2d, answer_landmarks_3d),
-                1.5: (answer_landmarks_2d, answer_landmarks_3d),
-                1.6: (answer_landmarks_2d, answer_landmarks_3d),
-                1.7: (answer_landmarks_2d, answer_landmarks_3d),
-                1.8: (answer_landmarks_2d, answer_landmarks_3d),
-                1.9: (answer_landmarks_2d, answer_landmarks_3d),
-                2.0: (answer_landmarks_2d, answer_landmarks_3d),
-                2.1: (answer_landmarks_2d, answer_landmarks_3d),
-                2.2: (answer_landmarks_2d, answer_landmarks_3d),
-                2.3: (answer_landmarks_2d, answer_landmarks_3d),
-                2.4: (answer_landmarks_2d, answer_landmarks_3d),
-            },
-        },
-        1: {
-            "width": 1280,
-            "height": 720,
-            "fps": 30,
-            "landmarks": {
-                0.0: (answer_landmarks_2d, answer_landmarks_3d),
-                0.1: (answer_landmarks_2d, answer_landmarks_3d),
-                0.2: (answer_landmarks_2d, answer_landmarks_3d),
-                0.3: (answer_landmarks_2d, answer_landmarks_3d),
-                0.4: (answer_landmarks_2d, answer_landmarks_3d),
-                0.5: (answer_landmarks_2d, answer_landmarks_3d),
-                0.6: (answer_landmarks_2d, answer_landmarks_3d),
-                0.7: (answer_landmarks_2d, answer_landmarks_3d),
-                0.8: (answer_landmarks_2d, answer_landmarks_3d),
-                0.9: (answer_landmarks_2d, answer_landmarks_3d),
-                1.0: (answer_landmarks_2d, answer_landmarks_3d),
-                1.1: (answer_landmarks_2d, answer_landmarks_3d),
-                1.2: (answer_landmarks_2d, answer_landmarks_3d),
-                1.3: (answer_landmarks_2d, answer_landmarks_3d),
-                1.4: (answer_landmarks_2d, answer_landmarks_3d),
-                1.5: (answer_landmarks_2d, answer_landmarks_3d),
-                1.6: (answer_landmarks_2d, answer_landmarks_3d),
-                1.7: (answer_landmarks_2d, answer_landmarks_3d),
-                1.8: (answer_landmarks_2d, answer_landmarks_3d),
-                1.9: (answer_landmarks_2d, answer_landmarks_3d),
-                2.0: (answer_landmarks_2d, answer_landmarks_3d),
-                2.1: (answer_landmarks_2d, answer_landmarks_3d),
-                2.2: (answer_landmarks_2d, answer_landmarks_3d),
-                2.3: (answer_landmarks_2d, answer_landmarks_3d),
-                2.4: (answer_landmarks_2d, answer_landmarks_3d),
-            },
-        },
-        2: {
-            "width": 1280,
-            "height": 720,
-            "fps": 30,
-            "landmarks": {
-                0.0: (answer_landmarks_2d, answer_landmarks_3d),
-                0.1: (answer_landmarks_2d, answer_landmarks_3d),
-                0.2: (answer_landmarks_2d, answer_landmarks_3d),
-                0.3: (answer_landmarks_2d, answer_landmarks_3d),
-                0.4: (answer_landmarks_2d, answer_landmarks_3d),
-                0.5: (answer_landmarks_2d, answer_landmarks_3d),
-                0.6: (answer_landmarks_2d, answer_landmarks_3d),
-                0.7: (answer_landmarks_2d, answer_landmarks_3d),
-                0.8: (answer_landmarks_2d, answer_landmarks_3d),
-                0.9: (answer_landmarks_2d, answer_landmarks_3d),
-                1.0: (answer_landmarks_2d, answer_landmarks_3d),
-                1.1: (answer_landmarks_2d, answer_landmarks_3d),
-                1.2: (answer_landmarks_2d, answer_landmarks_3d),
-                1.3: (answer_landmarks_2d, answer_landmarks_3d),
-                1.4: (answer_landmarks_2d, answer_landmarks_3d),
-                1.5: (answer_landmarks_2d, answer_landmarks_3d),
-                1.6: (answer_landmarks_2d, answer_landmarks_3d),
-                1.7: (answer_landmarks_2d, answer_landmarks_3d),
-                1.8: (answer_landmarks_2d, answer_landmarks_3d),
-                1.9: (answer_landmarks_2d, answer_landmarks_3d),
-                2.0: (answer_landmarks_2d, answer_landmarks_3d),
-                2.1: (answer_landmarks_2d, answer_landmarks_3d),
-                2.2: (answer_landmarks_2d, answer_landmarks_3d),
-                2.3: (answer_landmarks_2d, answer_landmarks_3d),
-                2.4: (answer_landmarks_2d, answer_landmarks_3d),
-            },
-        },
-        3: {
-            "width": 1280,
-            "height": 720,
-            "fps": 30,
-            "landmarks": {
-                0.0: (answer_landmarks_2d, answer_landmarks_3d),
-                0.1: (answer_landmarks_2d, answer_landmarks_3d),
-                0.2: (answer_landmarks_2d, answer_landmarks_3d),
-                0.3: (answer_landmarks_2d, answer_landmarks_3d),
-                0.4: (answer_landmarks_2d, answer_landmarks_3d),
-                0.5: (answer_landmarks_2d, answer_landmarks_3d),
-                0.6: (answer_landmarks_2d, answer_landmarks_3d),
-                0.7: (answer_landmarks_2d, answer_landmarks_3d),
-                0.8: (answer_landmarks_2d, answer_landmarks_3d),
-                0.9: (answer_landmarks_2d, answer_landmarks_3d),
-                1.0: (answer_landmarks_2d, answer_landmarks_3d),
-                1.1: (answer_landmarks_2d, answer_landmarks_3d),
-                1.2: (answer_landmarks_2d, answer_landmarks_3d),
-                1.3: (answer_landmarks_2d, answer_landmarks_3d),
-                1.4: (answer_landmarks_2d, answer_landmarks_3d),
-                1.5: (answer_landmarks_2d, answer_landmarks_3d),
-                1.6: (answer_landmarks_2d, answer_landmarks_3d),
-                1.7: (answer_landmarks_2d, answer_landmarks_3d),
-                1.8: (answer_landmarks_2d, answer_landmarks_3d),
-                1.9: (answer_landmarks_2d, answer_landmarks_3d),
-                2.0: (answer_landmarks_2d, answer_landmarks_3d),
-                2.1: (answer_landmarks_2d, answer_landmarks_3d),
-                2.2: (answer_landmarks_2d, answer_landmarks_3d),
-                2.3: (answer_landmarks_2d, answer_landmarks_3d),
-                2.4: (answer_landmarks_2d, answer_landmarks_3d),
-            },
-        },
-    }
+        if os.path.isdir(folder_path):
+            poses_file_path = os.path.join(folder_path, "poses.txt")
+
+            if os.path.exists(poses_file_path):
+                try:
+                    with open(poses_file_path, "r") as file:
+                        # 첫 번째 줄: 메타 데이터
+                        header = file.readline().strip()
+                        width, height, frame_interval_raw, video_length_sec = map(
+                            float, header.split(",")
+                        )
+
+                        # frame_interval이 100.0일 경우 0.1로 간주
+                        frame_interval = (
+                            0.1 if frame_interval_raw == 100.0 else frame_interval_raw
+                        )
+
+                        # 기본 정보 저장
+                        data = {
+                            "width": int(width),
+                            "height": int(height),
+                            "fps": int(1 / frame_interval),  # FPS 계산
+                            "length": video_length_sec,
+                            "landmarks": {},
+                        }
+
+                        # 나머지 데이터 처리
+                        current_time = 0.0
+                        current_2d = []
+                        current_3d = []
+                        previous_2d = None
+                        previous_3d = None
+
+                        for line in file:
+                            line = line.strip()
+
+                            if not line:  # 빈 줄: 한 세트 종료
+                                if current_2d and current_3d:
+                                    # 정상 데이터 저장
+                                    data["landmarks"][round(current_time, 1)] = (
+                                        current_2d,
+                                        current_3d,
+                                    )
+                                    previous_2d = current_2d
+                                    previous_3d = current_3d
+                                elif previous_2d and previous_3d:
+                                    # None 데이터 처리: 이전 프레임 데이터 복사
+                                    data["landmarks"][round(current_time, 1)] = (
+                                        previous_2d,
+                                        previous_3d,
+                                    )
+
+                                current_time += frame_interval
+                                current_2d = []
+                                current_3d = []
+                            else:
+                                values = line.split(",")
+                                if values == ["None"] * 5:
+                                    # None 데이터를 발견한 경우, 건너뜀 (빈 줄에서 처리)
+                                    continue
+                                elif len(values) == 5:
+                                    x_2d, y_2d, x_3d, y_3d, z_3d = map(float, values)
+                                    current_2d.append((x_2d, y_2d))
+                                    current_3d.append((x_3d, y_3d, z_3d))
+
+                        # 마지막 데이터 처리
+                        if current_2d and current_3d:
+                            data["landmarks"][round(current_time, 1)] = (
+                                current_2d,
+                                current_3d,
+                            )
+                        elif previous_2d and previous_3d:
+                            data["landmarks"][round(current_time, 1)] = (
+                                previous_2d,
+                                previous_3d,
+                            )
+
+                        # 결과에 추가
+                        result[int(folder_name)] = data
+
+                except Exception as e:
+                    print(f"Error reading file {poses_file_path}: {e}")
+
+    return result
 
 
 def is_keypoint_time(current_time):
@@ -215,10 +108,8 @@ def read_answer(database, song_id, current_time):
     # 추후 구현
     print(current_time, "s |", sep="", end=" ")
 
-    current_time = 1.8  # 실제 DB 로드후 변경 필요
-
     width, height = database[song_id]["width"], database[song_id]["height"]
 
-    centered_answer_2D, answer_3D = database[song_id][current_time]
+    centered_answer_2D, answer_3D = database[song_id]["landmarks"][current_time]
 
     return width, height, centered_answer_2D, answer_3D

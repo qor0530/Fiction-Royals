@@ -36,6 +36,7 @@ print("===========" * 10)
 print("* 포즈 추정 시작")
 
 start_time = time.time()
+song_id = 0
 
 try:
     while True:
@@ -55,7 +56,7 @@ try:
 
         if num_of_humans > 0:
             width, height, centered_answer_2D, answer_3D = read_answer(
-                database, current_time
+                database, song_id, current_time
             )
             unity_scores_and_poses = {0: (100.0, answer_3D)}
 
