@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 
 def load_dance_database():
@@ -51,6 +52,9 @@ def load_dance_database():
 
                             if not line:  # 빈 줄: 한 세트 종료
                                 if current_2d and current_3d:
+                                    current_2d = np.array(current_2d)  # 33x2
+                                    center_2d = current_2d[[23, 24]].mean(axis=0)
+                                    current_2d = current_2d - center_2d
                                     # 정상 데이터 저장
                                     data["landmarks"][round(current_time, 1)] = (
                                         current_2d,
