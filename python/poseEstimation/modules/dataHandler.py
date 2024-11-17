@@ -53,8 +53,14 @@ def load_dance_database():
                             if not line:  # 빈 줄: 한 세트 종료
                                 if current_2d and current_3d:
                                     current_2d = np.array(current_2d)  # 33x2
-                                    center_2d = current_2d[[23, 24]].mean(axis=0)
-                                    current_2d = current_2d - center_2d
+                                    left_x, left_y = current_2d[23]
+                                    right_x, right_y = current_2d[24]
+
+                                    center_2d = np.array(
+                                        [(left_x + right_x) / 2, (left_y + right_y) / 2]
+                                    )
+                                    current_2d = (current_2d - center_2d).tolist()
+
                                     # 정상 데이터 저장
                                     data["landmarks"][round(current_time, 1)] = (
                                         current_2d,
