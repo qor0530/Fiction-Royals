@@ -114,9 +114,10 @@ def is_keypoint_time(current_time):
     return True
 
 
-def read_answer(database, song_id, current_time):
+def read_answer(database, song_id, current_time, is_dancing_time):
     # 추후 구현
-    print(current_time, "s |", sep="", end=" ")
+    if is_dancing_time:
+        print(current_time, "s |", sep="", end=" ")
 
     width, height = database[song_id]["width"], database[song_id]["height"]
 
