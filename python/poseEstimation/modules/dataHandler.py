@@ -1,11 +1,8 @@
-from python.poseEstimation.modules.poseFunctions import normalize_landmarks
-
-
-def loadDanceDatabase():
+def load_dance_database():
     # 추후 파일 읽기로 구현
     ########## 이 부분을 가흔이의 정답 DB 읽어오는 코드로 변경 ##########
 
-    normalized_answer_2d = [
+    answer_landmarks_2d = [
         (190, 167),
         (190, 156),
         (191, 154),
@@ -40,7 +37,7 @@ def loadDanceDatabase():
         (308, 440),
         (187, 460),
     ]
-    converted_answer_landmarks_3d = [
+    answer_landmarks_3d = [
         (-0.43727564811706543, -0.30032679438591003, -0.3849524259567261),
         (-0.43142667412757874, -0.33429262042045593, -0.3867550194263458),
         (-0.4330572485923767, -0.33410361409187317, -0.37716224789619446),
@@ -76,32 +73,34 @@ def loadDanceDatabase():
         (-0.5732921361923218, 0.7279732823371887, -0.05549197643995285),
     ]
 
+    print("* 데이터베이스 준비 완료.")
     return {
-        0.1: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.2: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.3: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.4: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.5: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.6: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.7: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.8: (normalized_answer_2d, converted_answer_landmarks_3d),
-        0.9: (normalized_answer_2d, converted_answer_landmarks_3d),
-        1.0: (normalized_answer_2d, converted_answer_landmarks_3d),
-        1.1: (normalized_answer_2d, converted_answer_landmarks_3d),
-        1.2: (normalized_answer_2d, converted_answer_landmarks_3d),
+        0.1: (answer_landmarks_2d, answer_landmarks_3d),
+        0.2: (answer_landmarks_2d, answer_landmarks_3d),
+        0.3: (answer_landmarks_2d, answer_landmarks_3d),
+        0.4: (answer_landmarks_2d, answer_landmarks_3d),
+        0.5: (answer_landmarks_2d, answer_landmarks_3d),
+        0.6: (answer_landmarks_2d, answer_landmarks_3d),
+        0.7: (answer_landmarks_2d, answer_landmarks_3d),
+        0.8: (answer_landmarks_2d, answer_landmarks_3d),
+        0.9: (answer_landmarks_2d, answer_landmarks_3d),
+        1.0: (answer_landmarks_2d, answer_landmarks_3d),
+        1.1: (answer_landmarks_2d, answer_landmarks_3d),
+        1.2: (answer_landmarks_2d, answer_landmarks_3d),
     }
 
 
-def isKeyPointTime(current_time):
+def is_keypoint_time(current_time):
     # 추후 구현
     return True
 
 
-def read_answer(database, current_time) -> tuple[list, list]:
+def read_answer(database, current_time):
     # 추후 구현
-    print("시간: ", current_time, "s", sep="")
-
-    # idx = current_time # 아직 DB 미완성
+    print(current_time, "s |", sep="", end=" ")
     idx = 0.1
+    width, height = 1234, 1234
+    centered_answer_2D, answer_3D = database[idx]
+    # idx = current_time # 아직 DB 미완성
 
-    return database[idx]
+    return width, height, centered_answer_2D, answer_3D
