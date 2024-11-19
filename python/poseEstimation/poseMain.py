@@ -28,7 +28,8 @@ while True:
         break
 
     landmarks_pairs = process_frame(frame, answer_pose_landmarks.pose_landmarks)
-
+    frame = cv2.resize(frame, (640, 700))  # 원하는 크기로 변경 (예: 640x480)
+    
     if landmarks_pairs is None:
         cv2.imshow("Dance Pose Estimation", frame)
     else:
@@ -42,8 +43,8 @@ while True:
                     angles_answer, angles_real_time
                 )
                 print("유사도:", similarity_score)
-                print("정답 각도 배열:", angles_answer)
-                print("실시간 각도 배열:", angles_real_time)
+                # print("정답 각도 배열:", angles_answer)
+                # print("실시간 각도 배열:", angles_real_time)
 
                 # 수정 필요
                 # pose_landmarks_3D = [
