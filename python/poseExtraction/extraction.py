@@ -28,28 +28,34 @@ def extract_pose(video_path, output_video_path):
     video_length = total_frames / original_fps
 
     # 비디오 저장 설정
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_video_path, fourcc,
-                          fixed_fps, (frame_width, frame_height))
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(
+        output_video_path, fourcc, fixed_fps, (frame_width, frame_height)
+    )
 
-    pose = mp_pose.Pose(static_image_mode=False,
-                        min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    pose = mp_pose.Pose(
+        static_image_mode=False,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5,
+    )
 
     # 결과 저장용 리스트
     pose_3d_results = []
     pose_2d_results = []
 
     # 프레임 간격 설정
-    frame_interval = int(original_fps / fixed_fps)
+    frame_interval = original_fps / fixed_fps
 
     frame_count = 0
+    accumulated_frame = 0.0
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
         # 설정한 프레임 간격에 맞춰 프레임을 샘플링
-        if frame_count % frame_interval == 0:
+        if round(accumulated_frame) == frame_count:
             # BGR을 RGB로 변환
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
@@ -60,10 +66,12 @@ def extract_pose(video_path, output_video_path):
             # 포즈가 추출되었으면
             pose_3d, pose_2d = [], []
             if results.pose_landmarks:
-                for landmark_2d, landmark_3d in zip(results.pose_landmarks.landmark, results.pose_world_landmarks.landmark):
+                for landmark_2d, landmark_3d in zip(
+                    results.pose_landmarks.landmark,
+                    results.pose_world_landmarks.landmark,
+                ):
                     pose_2d.append((landmark_2d.x, landmark_2d.y))
-                    pose_3d.append(
-                        (landmark_3d.x, landmark_3d.y, landmark_3d.z))
+                    pose_3d.append((landmark_3d.x, landmark_3d.y, landmark_3d.z))
             else:
                 # 포즈가 아예 인식되지 않으면 모든 관절을 None으로 처리
                 for _ in range(33):  # 포즈 랜드마크는 총 33개
@@ -77,11 +85,13 @@ def extract_pose(video_path, output_video_path):
             image.flags.writeable = True
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             mp_drawing.draw_landmarks(
-                image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-            cv2.imshow('3D Pose', image)
+                image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS
+            )
+            cv2.imshow("3D Pose", image)
             out.write(image)
+            accumulated_frame += frame_interval
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         frame_count += 1
@@ -90,14 +100,21 @@ def extract_pose(video_path, output_video_path):
     out.release()
     cv2.destroyAllWindows()
 
-    return pose_2d_results, pose_3d_results, (frame_width, frame_height), (1000 / fixed_fps), video_length
+    return (
+        pose_2d_results,
+        pose_3d_results,
+        (frame_width, frame_height),
+        (1000 / fixed_fps),
+        video_length,
+    )
 
 
-def save_pose_data_as_txt(pose_2ds, pose_3ds, output_file, frame_size, frame_interval, video_length):
-    with open(output_file, 'w') as f:
+def save_pose_data_as_txt(
+    pose_2ds, pose_3ds, output_file, frame_size, frame_interval, video_length
+):
+    with open(output_file, "w") as f:
         # 헤더 정보 저장
-        f.write(
-            f"{frame_size[0]},{frame_size[1]},{frame_interval},{video_length}\n")
+        f.write(f"{frame_size[0]},{frame_size[1]},{frame_interval},{video_length}\n")
 
         # 포즈 데이터 저장
         for p_2d, p_3d in zip(pose_2ds, pose_3ds):
@@ -108,16 +125,14 @@ def save_pose_data_as_txt(pose_2ds, pose_3ds, output_file, frame_size, frame_int
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    video_dir = os.path.join(script_dir, '..', '..', 'db', 'videoFile')
-    output_dir = os.path.join(script_dir, '..', '..', 'db', '9')  # 파일 위치
+    video_dir = os.path.join(script_dir, "..", "..", "db", "videoFile")
+    output_dir = os.path.join(script_dir, "..", "..", "db", "3")  # 파일 위치
 
-    video_filename = "nemonemo.mp4"  # 비디오 파일 이름적기
+    video_filename = "supernova.mp4"  # 비디오 파일 이름적기
 
     video_path = os.path.join(video_dir, video_filename)
-    output_txt_file = os.path.join(
-        output_dir, f"poses.txt")
-    output_video_path = os.path.join(
-        output_dir, f"output_video_{video_filename}")
+    output_txt_file = os.path.join(output_dir, f"poses.txt")
+    output_video_path = os.path.join(output_dir, f"output_video_{video_filename}")
 
     print(video_path, output_txt_file, output_video_path, sep="\n\n\n")
 
@@ -127,10 +142,12 @@ def main():
 
     # 관절 데이터 추출
     pose_2ds, pose_3ds, frame_size, frame_interval, video_length = extract_pose(
-        video_path, output_video_path)
+        video_path, output_video_path
+    )
 
-    save_pose_data_as_txt(pose_2ds, pose_3ds, output_txt_file,
-                          frame_size, frame_interval, video_length)
+    save_pose_data_as_txt(
+        pose_2ds, pose_3ds, output_txt_file, frame_size, frame_interval, video_length
+    )
     print(f"포즈 데이터를 {output_txt_file}에 저장했습니다.")
     print(f"포즈 비디오를 {output_video_path}에 저장했습니다.")
 
