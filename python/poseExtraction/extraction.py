@@ -109,9 +109,9 @@ def save_pose_data_as_txt(pose_2ds, pose_3ds, output_file, frame_size, frame_int
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     video_dir = os.path.join(script_dir, '..', '..', 'db', 'videoFile')
-    output_dir = os.path.join(script_dir, '..', '..', 'db', '4')  # 파일 위치
+    output_dir = os.path.join(script_dir, '..', '..', 'db', '9')  # 파일 위치
 
-    video_filename = "fighting.mp4"  # 비디오 파일 이름적기
+    video_filename = "nemonemo.mp4"  # 비디오 파일 이름적기
 
     video_path = os.path.join(video_dir, video_filename)
     output_txt_file = os.path.join(
