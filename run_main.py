@@ -13,8 +13,8 @@ def initialize_camera():
     else:
         cap = cv2.VideoCapture(0)
 
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1920)
     cap.set(cv2.CAP_PROP_FPS, 60)
 
     if not cap.isOpened():
@@ -69,7 +69,7 @@ udp_thread = threading.Thread(target=udp_listener, daemon=True)
 udp_thread.start()
 
 cv2.namedWindow("Dance Pose Estimation", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("Dance Pose Estimation", 640, 360)
+cv2.resizeWindow("Dance Pose Estimation", 1920, 1080)
 
 
 print("===========" * 10)
