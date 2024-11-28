@@ -31,7 +31,7 @@ def udp_listener():
     """
     global is_dancing_time, song_id
     udp_ip = "127.0.0.1"  # Unity가 메시지를 보내는 IP 주소 (localhost)
-    udp_port = 25252  # Unity가 메시지를 보내는 포트
+    udp_port = 25252  # Unity가 메시지를 보내 는 포트
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((udp_ip, udp_port))
@@ -48,11 +48,11 @@ def udp_listener():
             if message.startswith("start"):
                 print(f"* 곡 {song_id} 시작 신호를 받았습니다")
                 print("* 3.....")
-                time.sleep(1)
+                time.sleep(0.7)
                 print("* 2.....")
-                time.sleep(1)
+                # time.sleep(1)
                 print("* 1.....")
-                time.sleep(1)
+                # time.sleep(1)
                 print("* 춤 시작!")
                 _, song_id_str = message.split()
                 song_id = int(song_id_str)  # song_id 업데이트
@@ -84,7 +84,7 @@ try:
     while True:
         ret, frame = cap.read()
         frame = cv2.flip(frame, 1)
-        # canvas = np.ones((500, 500, 3), dtype=np.uint8) * 255
+        canvas = np.ones((500, 500, 3), dtype=np.uint8) * 255
         current_time = round(time.time() - start_time, 1)
         if not ret:
             break
@@ -114,7 +114,7 @@ try:
             for human_index, similarity_score in enumerate(similarity_scores):
                 real_time_2D = sorted_real_time_2Ds[human_index]
                 real_time_3D = sorted_real_time_3Ds[human_index]
-                # centered_real_time_2D = sorted_centered_real_time_2Ds[human_index]
+                centered_real_time_2D = sorted_centered_real_time_2Ds[human_index]
 
                 # 유니티 데이터 추가
                 unity_scores_and_poses[human_index + 1] = (
@@ -126,12 +126,12 @@ try:
                 frame = painter.draw_realtime_frame(
                     frame, human_index + 1, real_time_2D
                 )
-                # canvas = painter.draw_pose_comparisons(
-                #     canvas,
-                #     human_index + 1,
-                #     centered_answer_2D,
-                #     centered_real_time_2D,
-                # )
+                canvas = painter.draw_pose_comparisons(
+                    canvas,
+                    human_index + 1,
+                    centered_answer_2D,
+                    centered_real_time_2D,
+                )
 
             if is_dancing_time:
                 print("개인별 점수:", similarity_scores)
@@ -141,7 +141,7 @@ try:
                 pass
 
         cv2.imshow("Dance Pose Estimation", frame)
-        # cv2.imshow("Answer Pose Comparisons", canvas)
+        cv2.imshow("Answer Pose Comparisons", canvas)
 
         if not is_dancing_time:
             start_time = time.time()
