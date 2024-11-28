@@ -10,8 +10,8 @@ def send_to_unity(data):
         # JSON 호환 형식으로 변환
         data_json_compatible = {
             "data": [
-                {"score": float(score), "coord_3d": real_time_landmarks_3d}
-                for key, (score, real_time_landmarks_3d) in data.items()
+                 {"score": float(score), "coord_3d": list(real_time_landmarks_3d)}
+            for key, (score, real_time_landmarks_3d) in data.items()
             ]
         }
 
