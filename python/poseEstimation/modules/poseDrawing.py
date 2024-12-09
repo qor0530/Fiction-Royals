@@ -49,7 +49,6 @@ class Painter:
         pass
 
     def draw_realtime_frame(self, frame, human_index, real_time_2D):
-        """이미지에 포즈 랜드마크와 연결선을 그려주는 함수"""
         try:
             color = Painter.COLORS[human_index]
             width, height, _ = frame.shape
@@ -76,7 +75,6 @@ class Painter:
     def draw_pose_comparisons(
         self, canvas, human_index, centered_answer_2D, centered_real_time_2D
     ):
-        """정답 포즈와 실시간 포즈 랜드마크를 캔버스에 그려주는 함수"""
         color_answer = Painter.COLORS[0]
         color_realtime = Painter.COLORS[human_index]
         w, h, _ = canvas.shape
@@ -91,17 +89,10 @@ class Painter:
             cv2.circle(canvas, (x, y), 5, color_realtime, -1)
 
         for start_idx, end_idx in Painter.POSE_CONNECTIONS:
-            (
-                (answer_start_x, answer_start_y),
-                (answer_end_x, answer_end_y),
-                (real_time_start_x, real_time_start_y),
-                (real_time_end_x, real_time_end_y),
-            ) = (
-                centered_answer_2D[start_idx],
-                centered_answer_2D[end_idx],
-                centered_real_time_2D[start_idx],
-                centered_real_time_2D[end_idx],
-            )
+            (answer_start_x, answer_start_y) = centered_answer_2D[start_idx]
+            (answer_end_x, answer_end_y) = centered_answer_2D[end_idx]
+            (real_time_start_x, real_time_start_y) = centered_real_time_2D[start_idx]
+            (real_time_end_x, real_time_end_y) = centered_real_time_2D[end_idx]
 
             cv2.line(
                 canvas,
