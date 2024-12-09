@@ -71,7 +71,8 @@ def extract_pose(video_path, output_video_path):
                     results.pose_world_landmarks.landmark,
                 ):
                     pose_2d.append((landmark_2d.x, landmark_2d.y))
-                    pose_3d.append((landmark_3d.x, landmark_3d.y, landmark_3d.z))
+                    pose_3d.append(
+                        (landmark_3d.x, landmark_3d.y, landmark_3d.z))
             else:
                 # 포즈가 아예 인식되지 않으면 모든 관절을 None으로 처리
                 for _ in range(33):  # 포즈 랜드마크는 총 33개
@@ -114,7 +115,8 @@ def save_pose_data_as_txt(
 ):
     with open(output_file, "w") as f:
         # 헤더 정보 저장
-        f.write(f"{frame_size[0]},{frame_size[1]},{frame_interval},{video_length}\n")
+        f.write(
+            f"{frame_size[0]},{frame_size[1]},{frame_interval},{video_length}\n")
 
         # 포즈 데이터 저장
         for p_2d, p_3d in zip(pose_2ds, pose_3ds):
@@ -126,13 +128,14 @@ def save_pose_data_as_txt(
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     video_dir = os.path.join(script_dir, "..", "..", "db", "videoFile")
-    output_dir = os.path.join(script_dir, "..", "..", "db", "3")  # 파일 위치
+    output_dir = os.path.join(script_dir, "..", "..", "db", "9")  # 파일 위치
 
-    video_filename = "supernova.mp4"  # 비디오 파일 이름적기
+    video_filename = "candy_short.mp4"  # 비디오 파일 이름적기
 
     video_path = os.path.join(video_dir, video_filename)
     output_txt_file = os.path.join(output_dir, f"poses.txt")
-    output_video_path = os.path.join(output_dir, f"output_video_{video_filename}")
+    output_video_path = os.path.join(
+        output_dir, f"output_video_{video_filename}")
 
     print(video_path, output_txt_file, output_video_path, sep="\n\n\n")
 

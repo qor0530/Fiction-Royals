@@ -24,6 +24,7 @@ options = mp.tasks.vision.PoseLandmarkerOptions(
 # 포즈 랜드마커 객체 생성
 print("* 포즈 추적기 생성 중...")
 landmarker = mp.tasks.vision.PoseLandmarker.create_from_options(options)
+print(platform.system())
 print("* 포즈 추적기 생성 완료.")
 
 ANGLE_PAIRS = [
@@ -78,9 +79,11 @@ def calculate_pose_similarity_vectorized(
     """
 
     try:
-        angles_answers = np.array([extract_angles(centered_answer_2D)] * num_of_humans)
+        angles_answers = np.array(
+            [extract_angles(centered_answer_2D)] * num_of_humans)
         angles_real_times = np.array(
-            [extract_angles(one_person_2D) for one_person_2D in sorted_centered_2Ds]
+            [extract_angles(one_person_2D)
+             for one_person_2D in sorted_centered_2Ds]
         )
     except:
         return np.full(num_of_humans, 50.0)
@@ -91,7 +94,8 @@ def calculate_pose_similarity_vectorized(
     norms_real_times = np.linalg.norm(angles_real_times, axis=1)
 
     # 코사인 유사도 계산 및 0~100으로 변환
-    cosine_similarities = dot_products / (norms_answers * norms_real_times + 1e-5)
+    cosine_similarities = dot_products / \
+        (norms_answers * norms_real_times + 1e-5)
     similarity_percentages = ((cosine_similarities - 0.6) / 0.4) * 100
     similarity_percentages = np.clip(similarity_percentages, 0, 100)
 
@@ -131,7 +135,8 @@ def process_frame(frame):
         )
 
         # 중심 좌표 계산 및 정규화
-        centers_2Ds = (real_time_2Ds[:, [23, 24]].mean(axis=1)).reshape(-1, 1, 2)
+        centers_2Ds = (real_time_2Ds[:, [23, 24]].mean(
+            axis=1)).reshape(-1, 1, 2)
         centered_real_time_2Ds = real_time_2Ds - centers_2Ds
 
         # 0번 관절(머리)의 x좌표를 기준으로 정렬
