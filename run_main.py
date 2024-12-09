@@ -14,7 +14,7 @@ def initialize_camera():
     if platform.system() == "Windows":
         cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     else:
-        cap = cv2.VideoCapture(1)
+        cap = cv2.VideoCapture(0)
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1080)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1920)
