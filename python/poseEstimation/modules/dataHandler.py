@@ -5,8 +5,6 @@ import numpy as np
 def load_dance_database():
     """
     db 디렉토리 내 모든 poses.txt 파일을 읽어 데이터를 반환
-    :param db_path: db 디렉토리 경로
-    :return: 파싱된 데이터 딕셔너리
     """
     db_path = os.path.join(os.getcwd(), "db")
     result = {}
@@ -31,7 +29,6 @@ def load_dance_database():
                             0.1 if frame_interval_raw == 100.0 else frame_interval_raw
                         )
 
-                        # 기본 정보 저장
                         data = {
                             "width": int(width),
                             "height": int(height),
@@ -40,7 +37,6 @@ def load_dance_database():
                             "landmarks": {},
                         }
 
-                        # 나머지 데이터 처리
                         current_time = 0.0
                         current_2d = []
                         current_3d = []
@@ -52,7 +48,7 @@ def load_dance_database():
 
                             if not line:  # 빈 줄: 한 세트 종료
                                 if current_2d and current_3d:
-                                    current_2d = np.array(current_2d)  # 33x2
+                                    current_2d = np.array(current_2d)
                                     left_x, left_y = current_2d[23]
                                     right_x, right_y = current_2d[24]
 
@@ -61,7 +57,6 @@ def load_dance_database():
                                     )
                                     current_2d = (current_2d - center_2d).tolist()
 
-                                    # 정상 데이터 저장
                                     data["landmarks"][round(current_time, 1)] = (
                                         current_2d,
                                         current_3d,
@@ -69,7 +64,6 @@ def load_dance_database():
                                     previous_2d = current_2d
                                     previous_3d = current_3d
                                 elif previous_2d and previous_3d:
-                                    # None 데이터 처리: 이전 프레임 데이터 복사
                                     data["landmarks"][round(current_time, 1)] = (
                                         previous_2d,
                                         previous_3d,
@@ -81,7 +75,6 @@ def load_dance_database():
                             else:
                                 values = line.split(",")
                                 if values == ["None"] * 5:
-                                    # None 데이터를 발견한 경우, 건너뜀 (빈 줄에서 처리)
                                     continue
                                 elif len(values) == 5:
                                     x_2d, y_2d, x_3d, y_3d, z_3d = map(float, values)
@@ -100,7 +93,6 @@ def load_dance_database():
                                 previous_3d,
                             )
 
-                        # 결과에 추가
                         result[int(folder_name)] = data
 
                 except Exception as e:
@@ -115,9 +107,9 @@ def is_keypoint_time(current_time):
 
 
 def read_answer(database, song_id, current_time, is_dancing_time):
-    # 추후 구현
     if is_dancing_time:
-        print(current_time, "s |", sep="", end=" ")
+        print(current_time, "s |", sep="", end=" ")  # 필요 시 비활성화
+        pass
 
     width, height = database[song_id]["width"], database[song_id]["height"]
 
